@@ -1,0 +1,94 @@
+import React, { useState, useEffect } from 'react';
+
+function MedicalStore() {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(response => response.json())
+      .then(data => {
+        setProducts(data);
+        setLoading(false);
+      });
+  }, []);
+
+  function handleProductSelect(product) {
+    setSelectedProduct(product);
+  }
+
+  function handleProductUpdate(updatedProduct) {
+    setProducts(
+      products.map(product =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
+    );
+    setSelectedProduct(updatedProduct);
+  }
+
+  return (
+    <div>
+      <h1>Medical Store</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <h2>Product List</h2>
+          <ul>
+            {products.map(product => (
+              <li key={product.id} onClick={() => handleProductSelect(product)}>
+                {product.name}
+              </li>
+            ))}
+          </ul>
+          {selectedProduct && (
+            <ProductDetail
+              product={selectedProduct}
+              onUpdate={handleProductUpdate}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProductDetail({ product, onUpdate }) {
+  const [name, setName] = useState(product.name);
+  const [description, setDescription] = useState(product.description);
+  const [price, setPrice] = useState(product.price);
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    onUpdate({ ...product, name, description, price });
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>{product.name}</h2>
+      <label>
+        Name:
+        <input type="text" value={name} onChange={event => setName(event.target.value)} />
+      </label>
+      <br />
+      <label>
+        Description:
+        <input
+          type="text"
+          value={description}
+          onChange={event => setDescription(event.target.value)}
+        />
+      </label>
+      <br />
+      <label>
+        Price:
+        <input type="number" value={price} onChange={event => setPrice(event.target.value)} />
+      </label>
+      <br />
+      <button type="submit">Update</button>
+    </form>
+  );
+}
+
+export default MedicalStore;
